@@ -3,7 +3,7 @@
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public class QuizSetUpClient
+public class AddQuizSetUpClient
 {
 
 	public static void main(String args[])
@@ -16,16 +16,18 @@ public class QuizSetUpClient
 
 		try
 		{
-
 			// 2. Identify QuizService and create QuizService stub
 			Remote service = Naming.lookup("//127.0.0.1:1099/quiz");
 			QuizService quizService = (QuizService) service;
 
+			QuizSetUp qSetUp = new QuizSetUp(quizService);
+			qSetUp.launch();
 
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		} catch (RemoteException ex) {
 			ex.printStackTrace();
 		}
+		
 	}
 }
