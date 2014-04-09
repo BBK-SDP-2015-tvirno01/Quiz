@@ -13,4 +13,14 @@ public class Question implements Serializable
 		this.questions = qu;
 		this.answerSet = ans;
 	}
+
+	public String getQuestion()
+	{
+		return this.question;
+	}
+
+	public ArrayList<String> getAnswerSet()
+	{
+		return this.answerSet;
+	}
 }

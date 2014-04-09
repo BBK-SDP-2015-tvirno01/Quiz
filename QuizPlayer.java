@@ -13,7 +13,9 @@ public class QuizPlayer
 	{
 		System.out.println("Welcome to QuizMaster!");
 		
-		this.playerID = login();
+		LoginManager LM = new LoginManager(qServer);
+
+		this.playerID = LM.login();
 		
 		boolean finished = false;
 
@@ -27,7 +29,7 @@ public class QuizPlayer
 			int i = Interger.parseInt(System.console().readLine());
 			if(i==1)
 			{
-				this.playQuiz();
+				this.playQuiz(this.selectQuiz());
 			}else{
 				if(i==2)
 				{
@@ -41,74 +43,38 @@ public class QuizPlayer
 		System.exit();
 	}
 
-	private int login()
-	{
-		String strA = "";
-		String strB = "";
-		char[] pWord;
-		Boolean memberVerified = false;
-		int result = -1;
 
-		System.out.println("Register or proceed to login");
-		
-		System.out.println("1. Register");
-
-		System.out.println("2. Login");
-
-		if(Integer.parseInt(System.console().readLine())==1)
-		{
-			
-			System.out.println("Please enter your email address");
-			strA = System.console().readLine();
-			System.out.println("Please enter your password");
-			pWord = System.console().readLine().toCharArray();
-			System.out.println("Please enter your Quiz Master alias");
-			strB = System.console().readLine();
-
-			result = qServer.createMember(strB,strA,pWord);
-			
-		}
-
-		while(!memberVerified)
-		{
-			System.out.println("Please enter your email address and password");
-			strA = System.console().readLine();
-			System.out.println("Password");
-			strB = System.console().readLine();
-			
-			result = qServer.authenticateMember(strA,strB.toCharArray());
-
-			memberVerified = result>=0;
-		}
-		
-		return result;
-	}
-
-	private void playQuiz()
+	private void selectQuiz()
 	{
 		int quizID;
 
 		System.out.println("Please select one of the below options");
 		System.out.println("1. Search for a quiz");
 		System.out.println("2. Play a random quiz");
+		System.out.println("3. Quit");
 
 			int i = Interger.parseInt(System.console().readLine());
 			if(i==1)
 			{
-				quizID = quizSelect();
+				quizID = quizSearch();
 			}else{
-				if(i==2)
+				if(i==3)
 				{
-					quizID = qServer.getRandomQuizID;
+					System.exit();
 				}else{
-					throw IllegalArgumentException;
+					if(i==2)
+					{
+						quizID = qServer.getRandomQuizID;
+					}else{
+						throw IllegalArgumentException;
+					}
 				}
 			}
 
 		qServer.startQuiz(quizID);
 	}
 
-	private int quizSelect();
+	private int quizSearch();
 	{
 		boolean searchFinished = false;
 
@@ -126,25 +92,60 @@ public class QuizPlayer
 			}
 		}
 
-		return listMenu(searchResult);
+		return qServer.getQuizID(listMenuSelection(searchResult));
 	}
 
-	private int listMenu(Collection c<String>)
+	private String listMenuSelection(List<String> strL)
+	{	
+		String result;
+
+		while(result.equals(null))
+		{
+			System.out.println("Please select one of the below:");
+	
+			int i = 1;
+			for(String str:strL)
+			{
+				System.out.println(i+". "+str);
+				i++;
+			}
+	
+			int selection = Integer.parseInt(System.console().readLine());
+	
+			if(selection > i || selection < 1)
+			{
+				System.out.println("That is not a valid answer");
+				result = listMenuSelection(strL);
+			}else{
+				result = get(selection-1);
+			}
+		}		
+		
+		return result;
+
+	}
+
+	
+	private void playQuiz(int quizID)
 	{
 		int i = 1;
-		for(String str:c)
+		int numberOfQuestions = qServer.getNumberOfQuestions(quizID);
+		int score = 0;
+
+		System.out.println("Get ready to play "+qServer.getQuizName(quizID)+"!");
+		
+		while(i<=numberOfQuestions)
 		{
-			System.out.println(i+". "+str);
+			System.out.println(i+". "+qServer.getQuestion(quizID,this.playerID,i));
+			
+			score = score + qServer.checkAnswer(quizID,i,listMenuSelection(qServer.getAnswerSet(quizID,i)));
+
 			i++;
 		}
+		
+		qServer.submitScore(quizID,playerID,score);
 
+		System.out.println("Congratulations, you scored "+score+" out of "+numberOfQuestions+"!");
 	}
-
-
-
-
-
-
-
-
 } 
+
