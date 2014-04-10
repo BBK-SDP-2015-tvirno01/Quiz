@@ -34,4 +34,9 @@ public class Member
 			System.out.println("Unable to change password. Current password is incorrect. Please try again.");
 		}
 	}
+
+	public int getMemberID()
+	{
+		return this.memberID;
+	}
 }

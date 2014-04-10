@@ -1,17 +1,19 @@
 
 public class Quiz
 {
-	public final int quID;
-	public final String quName;
+	public final int quizID;
+	public final String quizName;
 	public final int creatorID;
-	public final HashSet<Question> quSet;
+	public final ArrayList<Question> quSet;
 	public final ArrayList<QuizScore> quLeaderBoard;
 	
 
-	public Quiz(int ID, String name,int creator, HashSet qus)
+	public Quiz(int ID, String name,int creator, ArrayList<Question> qus)
 	{
-		this.quName = name;
-		this.quSet = qus;	
+		this.quizID = ID;
+		this.quizName = name;
+		this.quSet = qus;
+		this.creatorID = creator;	
 	}
 
 	public void addQuestion(Question qu)

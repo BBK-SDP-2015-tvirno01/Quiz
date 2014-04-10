@@ -44,7 +44,7 @@ public class QuizPlayer
 	}
 
 
-	private void selectQuiz()
+	private int selectQuiz()
 	{
 		int quizID;
 
@@ -64,14 +64,14 @@ public class QuizPlayer
 				}else{
 					if(i==2)
 					{
-						quizID = qServer.getRandomQuizID;
+						quizID = qServer.getRandomQuizID();
 					}else{
 						throw IllegalArgumentException;
 					}
 				}
 			}
 
-		qServer.startQuiz(quizID);
+		return quizID;
 	}
 
 	private int quizSearch();
@@ -136,7 +136,7 @@ public class QuizPlayer
 		
 		while(i<=numberOfQuestions)
 		{
-			System.out.println(i+". "+qServer.getQuestion(quizID,this.playerID,i));
+			System.out.println(i+". "+qServer.getQuestion(quizID,i));
 			
 			score = score + qServer.checkAnswer(quizID,i,listMenuSelection(qServer.getAnswerSet(quizID,i)));
 

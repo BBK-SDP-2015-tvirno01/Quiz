@@ -125,7 +125,7 @@ public class QuizSetUp
 	{
 		System.out.println("Please enter the ID of the Quiz you want to close");
 
-		System.out.println(qServer.closeQuiz(quizID,playerID);
+		System.out.println(qServer.closeQuiz(quizID,playerID));
 	}
 
 
