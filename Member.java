@@ -1,9 +1,11 @@
 
+import java.util.*;
+
 public class Member
 {
 	public final int memberID;
-	public final alias;
-	public final emailAddress;
+	public final String alias;
+	public final String emailAddress;
 	private char[] password;
 
 	public Member(int ID,String a, String email, char[] pword)
@@ -16,7 +18,7 @@ public class Member
 
 	public boolean isPasswordCorrect(char[] testPW)
 	{
-		if (testPW.length()!= this.password.length())
+		if (testPW.length!= this.password.length)
 		{
         		return false;
     		} else {

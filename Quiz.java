@@ -1,4 +1,7 @@
 
+import java.util.*;
+import java.io.*;
+
 public class Quiz
 {
 	public final int quizID;
@@ -13,7 +16,8 @@ public class Quiz
 		this.quizID = ID;
 		this.quizName = name;
 		this.quSet = qus;
-		this.creatorID = creator;	
+		this.creatorID = creator;
+		this.quLeaderBoard = new ArrayList();	
 	}
 
 	public void addQuestion(Question qu)
@@ -33,14 +37,14 @@ public class Quiz
 
 	public ArrayList<QuizScore> getLeaderBoard()
 	{
-		ScoreComparator<QuizScore> cScore = new ScoreComparator<QuizScore>();
+		ScoreComparator<QuizScore> cScore = new ScoreComparatorImpl<QuizScore>();
 		Collections.sort(this.quLeaderBoard,cScore);
 		return this.quLeaderBoard;
 	}
 
 	public QuizScore getTopScore()
 	{
-		ScoreComparator<QuizScore> cScore = new ScoreComparator<QuizScore>();
+		ScoreComparator<QuizScore> cScore = new ScoreComparatorImpl<QuizScore>();
 		Collections.sort(this.quLeaderBoard,cScore);
 		return this.quLeaderBoard.get(1);
 	}

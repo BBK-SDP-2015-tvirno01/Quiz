@@ -1,5 +1,8 @@
 
-public class QuizScore
+import java.util.*;
+import java.io.*;
+
+public class QuizScore implements Serializable
 {
 	public final int memberID;
 	public final int score;
@@ -8,5 +11,10 @@ public class QuizScore
 	{
 		this.memberID = memberID;
 		this.score = score;
+	}
+
+	public int getScore()
+	{
+		return this.score;
 	}
 }

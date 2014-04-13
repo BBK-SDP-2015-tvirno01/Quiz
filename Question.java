@@ -1,4 +1,7 @@
 
+import java.util.*;
+import java.io.*;
+
 public class Question implements Serializable
 {
 	String question;
@@ -10,7 +13,7 @@ public class Question implements Serializable
 	*/
 	public Question(String qu, ArrayList<String> ans)
 	{
-		this.questions = qu;
+		this.question = qu;
 		this.answerSet = ans;
 	}
 

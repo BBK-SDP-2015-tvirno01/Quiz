@@ -1,4 +1,7 @@
 
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
 public class LoginManager
 {
 	private QuizService qServer;
@@ -22,6 +25,9 @@ public class LoginManager
 		System.out.println("1. Register");
 
 		System.out.println("2. Login");
+
+		try
+		{
 
 		if(Integer.parseInt(System.console().readLine())==1)
 		{
@@ -47,6 +53,10 @@ public class LoginManager
 			result = qServer.authenticateMember(strA,strB.toCharArray());
 
 			memberVerified = result>=0;
+		}
+		
+		}catch(RemoteException ex){
+			ex.printStackTrace();
 		}
 		
 		return result;

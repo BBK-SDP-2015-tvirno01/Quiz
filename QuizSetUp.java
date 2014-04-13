@@ -105,14 +105,14 @@ public class QuizSetUp
 		System.out.println("Please enter the correct answer for the question: "+System.getProperty("line.separator")+question);
 		
 		List<String> answerList = new ArrayList<String>(answerListSize);
-		int i = 0
+		int i = 0;
 		answerList[i] = System.console().readLine();
 		
 		do
 		{
 			i++;
 			System.out.readLine("Please enter incorrect answer "+i+" of "+answerListSize-1);			
-			answerList[i];
+			answerList[i] = System.console().readLine();
 
 		}while(i<answerListSize);
 

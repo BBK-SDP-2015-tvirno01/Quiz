@@ -3,7 +3,7 @@
 *Class to run the flush() method of a requestor object
 */
 
-public class Flusher<T> implements Runnable
+public class Flusher<T extends QuizServer> implements Runnable
 {
 	/**
 	*Denotes requesting generic type

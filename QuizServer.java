@@ -3,11 +3,11 @@ import java.util.*;
 import java.io.*;
 import java.text.*;
 import java.util.concurrent.atomic.*;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
+import java.rmi.server.*;
+import java.rmi.*;
 
 //houses data structures and implements methods to be called remotely by clients
-public class QuizServer extends UnicastRemoteObject implements QuizService
+public class QuizServer extends UnicastRemoteObject implements QuizService, Flushable
 {
 	private HashSet<Quiz> quizSet;
 	private ArrayList<Member> memberList;
@@ -20,8 +20,8 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		this.readFiles();
 
 		Flusher hookWriter = new Flusher(this);
-		Thread(hook) = new Thread(hookWriter);
-		Runtime.getRuntime().addShutdownhook(hook);
+		Thread hook = new Thread(hookWriter);
+		Runtime.getRuntime().addShutdownHook(hook);
 	}
 
 	/**
@@ -40,14 +40,14 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		try
 		{
 			imptM = new ObjectInputStream(new FileInputStream(".Members.txt"));
-			this.MemberList = (ArrayList<Member>) imptM.readObject();
+			this.memberList = (ArrayList<Member>) imptM.readObject();
 			imptQ = new ObjectInputStream(new FileInputStream(".QuizList.txt"));
-			this.meetingList = (HashSet<Meeting>) imptQ.readObject();
+			this.quizSet = (HashSet<Quiz>) imptQ.readObject();
 		}catch(FileNotFoundException ex){
 			this.quizIDgenerator = new AtomicInteger();
 			this.memberIDgenerator = new AtomicInteger();
-			this.contactList = new HashSet<Contact>();
-			this.meetingList = new HashSet<Meeting>();
+			this.quizSet = new HashSet<Quiz>();
+			this.memberList = new ArrayList<Member>();
 		}catch(ClassNotFoundException ex){
 			ex.printStackTrace();
 		}catch(IOException ex){
@@ -75,12 +75,12 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		{
 			saveFile = new FileOutputStream(".Members.txt");
 			ObjectOutputStream exptM = new ObjectOutputStream(saveFile);
-			expt.writeObject(this.memberList);
+			exptM.writeObject(this.memberList);
 
 
 			saveFile = new FileOutputStream(".QuizList.txt");
 			ObjectOutputStream exptQ = new ObjectOutputStream(saveFile);
-			expt.writeObject(this.quizSet);	
+			exptQ.writeObject(this.quizSet);	
 		}catch(IOException ex){
 			ex.printStackTrace();
 		}finally{
@@ -94,7 +94,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 	}
 
 
-	public int createMember(String alias,String emailAdd, char[] pWord)
+	public int createMember(String alias,String emailAdd, char[] pWord)  throws RemoteException
 	{
 		int memberID = this.memberIDgenerator.incrementAndGet();
 		Member newMember = new Member(memberID,alias, emailAdd, pWord);
@@ -108,7 +108,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		{
 			if(m.emailAddress.equals(emailAdd))
 			{
-				if(isPasswordCorrect(pWord))
+				if(m.isPasswordCorrect(pWord))
 				{
 					return m.getMemberID();
 				}
@@ -118,10 +118,10 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		return 0;
 	}
 
-	public int makeNewQuiz(String quizName, int memberID)	
+	public int makeNewQuiz(String quizName, int memberID)  throws RemoteException	
 	{
 		int quizID = this.quizIDgenerator.incrementAndGet();
-		HashSet<Question> questionSet = null;
+		ArrayList<Question> questionSet = null;
 		Quiz newQuiz = new Quiz(quizID,quizName, memberID, questionSet);
 		this.quizSet.add(newQuiz);
 		return quizID;
@@ -129,19 +129,30 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 
 	public Quiz getQuiz(int quizID)
 	{
-		for(Quiz q:this.quizSet)
+		try
 		{
-			if(q.quizID.equals(quizID)
+
+			if(!doesQuizExist(quizID))
 			{
-				return q;
+				throw new IllegalArgumentException();
 			}
+
+			for(Quiz q:this.quizSet)
+			{
+			if(q.quizID==quizID)
+				{
+					return q;
+				}
+			}
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			Quiz dummyQ = null;
+			return dummyQ;
 		}
-		
-		return null;
 
 	}
 
-	public void addQuestion(int quizID, int memberID, String question, ArrayList<String> answerList)
+	public void addQuestion(int quizID, int memberID, String question, ArrayList<String> answerList)  throws RemoteException
 	{
 		Quiz editQuiz = this.getQuiz(quizID);
 		if(memberID==editQuiz.creatorID)
@@ -151,7 +162,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		}
 	}
 
-	public String closeQuiz(int quizID, int memberID)
+	public String closeQuiz(int quizID, int memberID) throws RemoteException
 	{
 		String result = "";
 		Quiz editQuiz = this.getQuiz(quizID);
@@ -184,36 +195,44 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		return "Cannot find member ID "+memberID;
 	}
 
-	public int getQuizID(String quizName)
+	public int getQuizID(String quizName) throws RemoteException
 	{
-		for(Quiz q: this.quizSet)
+		try
 		{
-			if(quizName.equals(q.quizName))
-			{
-				return q.quizID;
-			}
-		}
 
-		return null;
+			for(Quiz q: this.quizSet)
+			{
+				if(quizName.equals(q.quizName))
+				{
+					return q.quizID;
+				}
+			}
+			throw new IllegalArgumentException();
+
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz name not found");
+			return -1;
+		}
+		
 	}
 
-	public int getRandomQuizID()
+	public int getRandomQuizID() throws RemoteException
 	{
 		int quizID;
 
 		do
 		{
-			quizID = Math.random()*quizIDgenerator.get();
+			quizID = (int) Math.random()*quizIDgenerator.get();
 		}while(!this.doesQuizExist(quizID));
 
 		return quizID;
 	}
 
-	private boolean doesQuizExist(quizID)
+	private boolean doesQuizExist(int quizID)
 	{
 		for(Quiz q: this.quizSet)
 		{
-			if(quizID.equals(q.quizID))
+			if(quizID==q.quizID)
 			{
 				return true;
 			}
@@ -222,9 +241,9 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		return false;
 	}
 
-	public List<String> searchQuiz(String keyword)
+	public ArrayList<String> searchQuiz(String keyword) throws RemoteException
 	{
-		List result = new ArrayList<String>();
+		ArrayList result = new ArrayList<String>();
 
 		for(Quiz q: quizSet)
 		{
@@ -237,86 +256,116 @@ public class QuizServer extends UnicastRemoteObject implements QuizService
 		return result;
 	}
 
-	public int getNumberOfQuestions(int quizID)
+	public int getNumberOfQuestions(int quizID) throws RemoteException
 	{
-		if(doesQuizExist(quizID))
+		try
 		{
-			return getQuiz(quizID).quSet.size();
-		}else{
-			return null;
-		}
-	}
-
-	public String getQuizName(int quizID)
-	{
-		if(doesQuizExist(quizID)
-		{
-			for(Quiz q:this.quizSet)
+			if(doesQuizExist(quizID))
 			{
-				if(q.quizID==quizID)
-				{
-					return q.quizName;
-				}
+				return getQuiz(quizID).quSet.size();
+			}else{
+				throw new IllegalArgumentException();
 			}
-		}else{
-			return null;
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			return -1;
 		}
 	}
 
-	public String getQuestion(int quizID, int quNum)
+	public String getQuizName(int quizID) throws RemoteException
 	{
-		if(doesQuizExist(quizID))
+		try
 		{
-			for(Quiz q:this.quizSet)
+			if(doesQuizExist(quizID))
 			{
-				if(quizID==q.quizID)
+				for(Quiz q:this.quizSet)
 				{
-					return q.quSet[quNum].question;
-				}
-			}
-		}else{
-			return null;
-		}
-	}
-
-	public List<String> getAnswerSet(int quizID,intquNum)
-	{
-		if(doesQuizExist(quizID))
-		{
-			for(Quiz q:this.quizSet)
-			{
-				if(quizID==q.quizID)
-				{
-					return q.quSet[quNum].answerSet; 
-				}s
-			}
-		}else{
-			return null;
-		}
-	}
-
-	public int checkAnswer(int quizID, int quNum, String answer)
-	{
-		if(doesQuizExist(quizID))
-		{
-			for(Quiz q:this.quizSet)
-			{
-				if(quizID==q.quizID)
-				{
-					if(answer.equals(q.quSet[quNum].answerSet[0]))
-					{	
-						return 1;
-					}else{
-						return 0;
+					if(q.quizID==quizID)
+					{
+						return q.quizName;
 					}
 				}
+			}else{
+				throw new IllegalArgumentException();
 			}
-		}else{
-			return null;
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			return "";
 		}
 	}
 
-	public void submitScore(int quizID, int memberID, int score)
+	public String getQuestion(int quizID, int quNum) throws RemoteException
+	{
+		try
+		{
+			if(doesQuizExist(quizID))
+			{
+				for(Quiz q:this.quizSet)
+				{
+					if(quizID==q.quizID)
+					{
+						return q.quSet.get(quNum).question;
+					}
+				}
+			}else{
+					throw new IllegalArgumentException();
+			}
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			return "";
+		}
+	}
+
+	public ArrayList<String> getAnswerSet(int quizID,int quNum) throws RemoteException
+	{
+		try
+		{
+			if(doesQuizExist(quizID))
+			{
+				for(Quiz q:this.quizSet)
+				{
+					if(quizID==q.quizID)
+					{
+						return q.quSet.get(quNum).answerSet; 
+					}
+				}
+			}else{
+					throw new IllegalArgumentException();
+			}
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			return new ArrayList();
+		}
+	}
+
+	public int checkAnswer(int quizID, int quNum, String answer) throws RemoteException
+	{
+		try
+		{
+			if(doesQuizExist(quizID))
+			{
+				for(Quiz q:this.quizSet)
+				{
+					if(quizID==q.quizID)
+					{
+						if(answer.equals(q.quSet.get(quNum).answerSet.get(0)))
+						{	
+							return 1;
+						}else{
+							return 0;
+						}
+					}
+				}
+			}else{
+					throw new IllegalArgumentException();
+			}
+		}catch(IllegalArgumentException ex){
+			System.out.println("Quiz not found");
+			return -1;
+		}
+	}
+
+	public void submitScore(int quizID, int memberID, int score) throws RemoteException
 	{
 		QuizScore newScore = new QuizScore(memberID,score);
 		if(doesQuizExist(quizID))
