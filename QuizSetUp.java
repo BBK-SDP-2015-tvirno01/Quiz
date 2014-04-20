@@ -25,64 +25,73 @@ public class QuizSetUp
 
 		boolean finished = false;
 
-		while(!finished)
+		try
 		{
-			System.out.println("Hi"+ qServer.getAlias(playerID)+", please select one of the below options:");
-			System.out.println("1. Create Quiz");
-			System.out.println("2. Close Quiz");
-			System.out.println("3. Quit");
-
-			int i = Integer.parseInt(System.console().readLine());
-
-			if(i==1)
+			while(!finished)
 			{
-				this.createQuiz();
-			}else{
-				if(i==2)
+				System.out.println("Hi"+ qServer.getAlias(playerID)+", please select one of the below options:");
+				System.out.println("1. Create Quiz");
+				System.out.println("2. Close Quiz");
+				System.out.println("3. Quit");
+	
+				int i = Integer.parseInt(System.console().readLine());
+	
+				if(i==1)
 				{
-					this.closeQuiz();
+					this.createQuiz();
 				}else{
-					if(i==3)
+					if(i==2)
 					{
-					finished = true;
-					}else{
-						throw new IllegalArgumentException();
+						this.closeQuiz();
+						}else{
+						if(i==3)
+						{
+						finished = true;
+						}else{
+							throw new IllegalArgumentException();
+						}
 					}
 				}
 			}
+		}catch(RemoteException ex){
+			ex.printStackTrace();
 		}
-
 		System.exit(0);
 	}
 
 	private int createQuiz()
 	{
-		System.out.println("Please enter the name of your quiz:");
-
-		String quizName = System.console().readLine();
-
-		int quizID = qServer.makeNewQuiz(quizName,this.playerID);
-		
-		boolean finished = false;
-		int i = 1;
-		String question;		
-		ArrayList answerList = null;
-		do
+		int quizID = -1;
+		try
 		{
-			question = addQuestion(i);
-
-			if(question.equals(null))
-			{
-				finished = true;
-			}else{
-				System.out.println("Please enter the number of possible answers for this question");
-				answerList = addAnswers(question,Integer.parseInt(System.console().readLine()));
+			System.out.println("Please enter the name of your quiz:");
 	
-				qServer.addQuestion(quizID,playerID,question,answerList);
-				i++;
-			}
-		}while(!finished);
-
+			String quizName = System.console().readLine();
+	
+			quizID = qServer.makeNewQuiz(quizName,this.playerID);
+			
+			boolean finished = false;
+			int i = 1;
+			String question;		
+			ArrayList answerList = null;
+			do
+			{
+				question = addQuestion(i);
+	
+				if(question.equals(null))
+					{
+					finished = true;
+				}else{
+					System.out.println("Please enter the number of possible answers for this question");
+						answerList = addAnswers(question,Integer.parseInt(System.console().readLine()));
+		
+					qServer.addQuestion(quizID,playerID,question,answerList);
+					i++;
+				}
+			}while(!finished);
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
 		return quizID;
 		
 	}
@@ -128,9 +137,14 @@ public class QuizSetUp
 
 	private void closeQuiz()
 	{
-		System.out.println("Please enter the ID of the Quiz you want to close");
-
-		System.out.println(qServer.closeQuiz(quizID,playerID));
+		try
+		{
+			System.out.println("Please enter the ID of the Quiz you want to close");
+			int quizID = Integer.parseInt(System.console().readLine());
+			System.out.println(qServer.closeQuiz(quizID,this.playerID));
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
 	}
 
 
