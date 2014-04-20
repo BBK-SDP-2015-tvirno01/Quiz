@@ -1,7 +1,8 @@
 
 import java.util.*;
+import java.io.*;
 
-public class Member
+public class Member implements Serializable
 {
 	public final int memberID;
 	public final String alias;

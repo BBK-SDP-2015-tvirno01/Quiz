@@ -2,7 +2,7 @@
 import java.util.*;
 import java.io.*;
 
-public class Quiz
+public class Quiz implements Serializable
 {
 	public final int quizID;
 	public final String quizName;
