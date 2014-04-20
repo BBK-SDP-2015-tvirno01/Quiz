@@ -56,8 +56,14 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 		}finally{
 			try
 			{
-				imptM.close();
-				imptQ.close();
+				if(!imptM.equals(null))
+				{
+					imptM.close();
+				}
+				if(!imptQ.equals(null))
+				{
+					imptQ.close();
+				}
 			}catch(IOException ex){
 				ex.printStackTrace();
 			}
