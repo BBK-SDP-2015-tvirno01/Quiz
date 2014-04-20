@@ -23,7 +23,7 @@ public class AddQuizSetUpClient
 		{
 			// 2. Identify QuizService and create QuizService stub
 			Remote service = Naming.lookup("//127.0.0.1:1099/quiz");
-			QuizService quizService = (QuizService) service;
+			QuizServer quizService = (QuizServer) service;
 
 			QuizSetUp qSetUp = new QuizSetUp(quizService);
 			qSetUp.launch();

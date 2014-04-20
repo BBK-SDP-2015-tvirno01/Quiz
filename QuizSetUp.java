@@ -9,7 +9,7 @@ import java.lang.*;
 
 public class QuizSetUp
 {
-	private QuizService qServer;
+	private QuizServer qServer;
 	public final int playerID;
 
 
@@ -17,7 +17,7 @@ public class QuizSetUp
 	*Constructor method initialises member fields. The player ID is initialised by the login in manager which will either register a new member or verify an existing members credentials
 	*@param QuizServer indicates the quiz service being accessed by the quiz player client
 	*/
-	public QuizSetUp(QuizService qServer)
+	public QuizSetUp(QuizServer qServer)
 	{
 		this.qServer = qServer;
 		LoginManager LM = new LoginManager(qServer);
