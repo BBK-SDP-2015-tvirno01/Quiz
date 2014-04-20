@@ -38,7 +38,7 @@ Running the quiz server:
 
 -To launch the quiz server run QuizMaster
 
--The security policy file is saved in the repo as RMIPolicy.txt
+-The security policy file is saved in the repo as RMI.Policy
 
 Running the clients:
 
