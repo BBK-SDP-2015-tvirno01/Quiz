@@ -1,12 +1,10 @@
 Commands needed to run the Quiz App
 
 •	Compiling the source code files
-The commands are:
 
-javac Account.java
-javac AccountImpl.java
-javac RegAccount.java
-javac AccountClient.java 
+Compile all java source files:
+
+javac -cp . *.java
 
 •	Generating the stub and skeleton using the rmi compiler
 The command to do this is:
