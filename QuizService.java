@@ -47,5 +47,7 @@ public interface QuizService extends Remote
 	//add player score to the quiz leaderboard
 	public void submitScore(int quizID, int playerID, int score) throws RemoteException;
 	
+	//returns the player Alias for the ID given
+	public String getAlias(int playerID) throws RemoteException;
 	
 }

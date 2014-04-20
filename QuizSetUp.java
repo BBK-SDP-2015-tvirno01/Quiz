@@ -1,33 +1,38 @@
 
+import java.util.*;
+import java.io.*;
+import java.text.*;
+import java.util.concurrent.atomic.*;
+import java.rmi.server.*;
+import java.rmi.*;
+import java.lang.*;
+
 public class QuizSetUp
 {
 	private QuizService qServer;
-	public final int memberID;
+	public final int playerID;
 
 	public QuizSetUp(QuizService qServer)
 	{
 		this.qServer = qServer;
+		LoginManager LM = new LoginManager(qServer);
+		this.playerID = LM.login();
 	}
 
 	public void launch()
 	{
 		System.out.println("Welcome to QuizMaster!");
-		
-		LoginManager LM = new LoginManager(qServer);
-
-		this.playerID = LM.login();
 
 		boolean finished = false;
 
 		while(!finished)
 		{
-			System.out.println("Hi"+ qServer.getMemberAlias(playerID)+", please select one of the below options:");
+			System.out.println("Hi"+ qServer.getAlias(playerID)+", please select one of the below options:");
 			System.out.println("1. Create Quiz");
 			System.out.println("2. Close Quiz");
 			System.out.println("3. Quit");
-			//additional options e.g. view quizzes, edit quiz, view leaderboards, view quiz stats etc...
 
-			int i = Interger.parseInt(System.console().readLine());
+			int i = Integer.parseInt(System.console().readLine());
 
 			if(i==1)
 			{
@@ -41,27 +46,27 @@ public class QuizSetUp
 					{
 					finished = true;
 					}else{
-						throw IllegalArgumentException;
+						throw new IllegalArgumentException();
 					}
 				}
 			}
 		}
 
-		System.exit();
+		System.exit(0);
 	}
 
 	private int createQuiz()
 	{
 		System.out.println("Please enter the name of your quiz:");
 
-		String quizName = System.console().readine();
+		String quizName = System.console().readLine();
 
 		int quizID = qServer.makeNewQuiz(quizName,this.playerID);
 		
 		boolean finished = false;
 		int i = 1;
 		String question;		
-		List answerList = null;
+		ArrayList answerList = null;
 		do
 		{
 			question = addQuestion(i);
@@ -86,12 +91,12 @@ public class QuizSetUp
 	{
 		System.out.println("Would you like to add a quesion? (y/n)");
 		
-		if(!System.console().readLine.equals("y")&&!System.console().readLine.equals("n"))
+		if(!System.console().readLine().equals("y")&&!System.console().readLine().equals("n"))
 		{
 			System.out.println("Invalid response");
 			return this.addQuestion(quNum);
 		}else{
-			if(System.console().readLine.equals("y"))
+			if(System.console().readLine().equals("y"))
 			{
 				System.out.println("Please enter question "+quNum);
 				return System.console().readLine();
@@ -104,17 +109,17 @@ public class QuizSetUp
 	{
 		System.out.println("Please enter the correct answer for the question: "+System.getProperty("line.separator")+question);
 		
-		List<String> answerList = new ArrayList<String>(answerListSize);
+		ArrayList<String> answerList = new ArrayList<String>(answerListSize);
 		int i = 0;
-		answerList[i] = System.console().readLine();
-		
+		answerList.set(i,System.console().readLine());
+		answerListSize = answerListSize - 1;
 		do
 		{
 			i++;
-			System.out.readLine("Please enter incorrect answer "+i+" of "+answerListSize-1);			
-			answerList[i] = System.console().readLine();
+			System.out.println("Please enter incorrect answer "+i+" of "+answerListSize);			
+			answerList.set(i,System.console().readLine());
 
-		}while(i<answerListSize);
+		}while(i<=answerListSize);
 
 		return answerList;
 		

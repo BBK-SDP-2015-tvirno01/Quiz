@@ -1,103 +1,129 @@
 
+
+import java.util.*;
+import java.io.*;
+import java.text.*;
+import java.util.concurrent.atomic.*;
+import java.rmi.server.*;
+import java.rmi.*;
+import java.lang.*;
+
 public class QuizPlayer
 {
-	private QuizService qServer;
+	private QuizServer qServer;
 	public final int playerID;
 
-	public QuizPlayer(QuizService qServer)
+	public QuizPlayer(QuizServer qServer)
 	{
 		this.qServer = qServer;
+		LoginManager LM = new LoginManager(qServer);
+		this.playerID = LM.login();
 	}
 
 	public void launch()
 	{
 		System.out.println("Welcome to QuizMaster!");
-		
-		LoginManager LM = new LoginManager(qServer);
-
-		this.playerID = LM.login();
-		
+		int quizID;
 		boolean finished = false;
 
 		while(!finished)
 		{
-			System.out.println("Hi"+ qServer.getMemberAlias(playerID)+", please select one of the below options:");
+			System.out.println("Hi"+ qServer.getAlias(playerID)+", please select one of the below options:");
 			System.out.println("1. Play Quiz");
 			System.out.println("2. Quit");
 			//more options e.g. player history/achievements, other players playing, challenge other player...
 			
-			int i = Interger.parseInt(System.console().readLine());
+			int i = Integer.parseInt(System.console().readLine());
 			if(i==1)
 			{
-				this.playQuiz(this.selectQuiz());
+				quizID = this.selectQuiz();
+				if(quizID==-1)
+				{
+					finished = true;
+				}else{
+					this.playQuiz(quizID);
+				}
 			}else{
 				if(i==2)
 				{
 					finished = true;
 				}else{
-					throw IllegalArgumentException;
+					throw new IllegalArgumentException();
 				}
 			}
 		}
 
-		System.exit();
+		System.exit(0);
 	}
 
 
-	private int selectQuiz()
+	private int selectQuiz() 
 	{
-		int quizID;
+		int quizID = 0;
 
 		System.out.println("Please select one of the below options");
 		System.out.println("1. Search for a quiz");
 		System.out.println("2. Play a random quiz");
 		System.out.println("3. Quit");
 
-			int i = Interger.parseInt(System.console().readLine());
+		try
+		{
+
+			int i = Integer.parseInt(System.console().readLine());
 			if(i==1)
 			{
 				quizID = quizSearch();
 			}else{
 				if(i==3)
 				{
-					System.exit();
+					quizID = -1;
 				}else{
 					if(i==2)
 					{
 						quizID = qServer.getRandomQuizID();
 					}else{
-						throw IllegalArgumentException;
+						throw new IllegalArgumentException();
 					}
 				}
 			}
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
 
 		return quizID;
 	}
 
-	private int quizSearch();
+	private int quizSearch()
 	{
 		boolean searchFinished = false;
-
-		while(!searchFinished)
+		ArrayList<String> searchResult = null;
+		int result = -1;
+		try
 		{
-			System.out.println("Please enter a search keyword:");
-			ArrayList<String> searchResult = qServer.searchQuiz(System.console().readLine());
-	
-			if(searchResult.equals(null))
+			while(!searchFinished)
 			{
-				System.out.println("No Search results.");
-				searchFinished = false;
-			}else{
-				searchFinished = true;
+				System.out.println("Please enter a search keyword:");
+				searchResult = qServer.searchQuiz(System.console().readLine());
+		
+				if(searchResult.equals(null))
+				{
+					System.out.println("No Search results.");
+					searchFinished = false;
+				}else{
+					searchFinished = true;
+				}
 			}
-		}
 
-		return qServer.getQuizID(listMenuSelection(searchResult));
+			result = qServer.getQuizID(listMenuSelection(searchResult));
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
+		return result;
 	}
 
-	private String listMenuSelection(List<String> strL)
+	private String listMenuSelection(ArrayList<String> strL)
 	{	
-		String result;
+		String result = null;
 
 		while(result.equals(null))
 		{
@@ -117,7 +143,7 @@ public class QuizPlayer
 				System.out.println("That is not a valid answer");
 				result = listMenuSelection(strL);
 			}else{
-				result = get(selection-1);
+				result = strL.get(selection-1);
 			}
 		}		
 		
@@ -128,24 +154,31 @@ public class QuizPlayer
 	
 	private void playQuiz(int quizID)
 	{
-		int i = 1;
-		int numberOfQuestions = qServer.getNumberOfQuestions(quizID);
-		int score = 0;
-
-		System.out.println("Get ready to play "+qServer.getQuizName(quizID)+"!");
-		
-		while(i<=numberOfQuestions)
+		try
 		{
-			System.out.println(i+". "+qServer.getQuestion(quizID,i));
+			int i = 1;
+			int numberOfQuestions = qServer.getNumberOfQuestions(quizID);
+			int score = 0;
+	
+			System.out.println("Get ready to play "+qServer.getQuizName(quizID)+"!");
 			
-			score = score + qServer.checkAnswer(quizID,i,listMenuSelection(qServer.getAnswerSet(quizID,i)));
-
-			i++;
-		}
-		
+			while(i<=numberOfQuestions)
+			{
+				System.out.println(i+". "+qServer.getQuestion(quizID,i));
+				
+					score = score + qServer.checkAnswer(quizID,i,listMenuSelection(qServer.getAnswerSet(quizID,i)));
+	
+				i++;
+			}
+	
 		qServer.submitScore(quizID,playerID,score);
 
 		System.out.println("Congratulations, you scored "+score+" out of "+numberOfQuestions+"!");
+
+		}catch(RemoteException ex){
+			ex.printStackTrace();
+		}
+
 	}
 } 
 

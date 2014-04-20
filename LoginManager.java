@@ -12,7 +12,7 @@ public class LoginManager
 	}
 
 	//returns playerID number
-	private int login()
+	public int login()
 	{
 		String strA = "";
 		String strB = "";

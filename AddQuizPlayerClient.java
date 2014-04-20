@@ -1,7 +1,6 @@
 
-
-import java.rmi.Remote;
-import java.rmi.RemoteException;
+import java.rmi.*;
+import java.net.*;
 
 public class AddQuizPlayerClient
 {
@@ -18,7 +17,7 @@ public class AddQuizPlayerClient
 		{
 			// 2. Identify QuizService and create QuizService stub
 			Remote service = Naming.lookup("//127.0.0.1:1099/quiz");
-			QuizService quizService = (QuizService) service;
+			QuizServer quizService = (QuizServer) service;
 
 			QuizPlayer qPlayer = new QuizPlayer(quizService);
 			qPlayer.launch();
@@ -26,6 +25,8 @@ public class AddQuizPlayerClient
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		} catch (RemoteException ex) {
+			ex.printStackTrace();
+		}catch(NotBoundException ex){
 			ex.printStackTrace();
 		}
 	}

@@ -174,7 +174,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 
 		return result;
 	}
-	private String getAlias(int memberID)
+	public String getAlias(int memberID)
 	{
 		for(Member m : this.memberList)
 		{
