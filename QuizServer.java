@@ -13,15 +13,24 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	private ArrayList<Member> memberList;
 	private AtomicInteger quizIDgenerator;
 	private AtomicInteger memberIDgenerator;
+	private boolean memberListInUse;
+	private boolean quizListInUse;
 
 	public QuizServer() throws RemoteException
 	{
 		super();
+
+		this.memberListInUse = true;
+		this.quizListInUse = true;
+
 		this.readFiles();
 
 		Flusher hookWriter = new Flusher(this);
 		Thread hook = new Thread(hookWriter);
 		Runtime.getRuntime().addShutdownHook(hook);
+
+		this.memberListInUse = false;
+		this.quizListInUse = false;	
 	}
 
 	/**
@@ -77,6 +86,9 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*/
 	public void flush()
 	{
+		this.memberListInUse = true;
+		this.quizListInUse = true;
+
 		FileOutputStream saveFile = null;
 		try
 		{
@@ -85,11 +97,11 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 			exptM.writeObject(this.memberIDgenerator);
 			exptM.writeObject(this.memberList);
 
-
 			saveFile = new FileOutputStream(".QuizList.txt");
 			ObjectOutputStream exptQ = new ObjectOutputStream(saveFile);
 			exptQ.writeObject(this.quizIDgenerator);
-			exptQ.writeObject(this.quizSet);	
+			exptQ.writeObject(this.quizSet);
+	
 		}catch(IOException ex){
 			ex.printStackTrace();
 		}finally{
@@ -100,6 +112,8 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 				ex.printStackTrace();
 			}
 		}
+		this.memberListInUse = false;
+		this.quizListInUse = false;
 	}
 
 	/**
@@ -110,11 +124,19 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param char[] password choen by user
 	*@return Returns the newly created members ID number as an integer
 	*/
-	public int createMember(String alias,String emailAdd, char[] pWord)  throws RemoteException
+	public synchronized int createMember(String alias,String emailAdd, char[] pWord)  throws RemoteException
 	{
 		int memberID = this.memberIDgenerator.incrementAndGet();
 		Member newMember = new Member(memberID,alias, emailAdd, pWord);
+
+		while(this.memberListInUse)
+		{
+			//loop until member list is free to amend
+		}
+		this.memberListInUse = true;
 		this.memberList.add(newMember);
+		this.memberListInUse = false;
+
 		return memberID;
 	}
 
@@ -125,7 +147,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param char[] password
 	*@return Returns the member ID of the user if the member exists in the member list and the password is correct. Returns -1 if member credentials cannot be verified (either because member does not exist or password is incorrect).
 	*/
-	public int authenticateMember(String emailAdd,char[] pWord) throws RemoteException
+	public synchronized int authenticateMember(String emailAdd,char[] pWord) throws RemoteException
 	{
 		for(Member m:this.memberList)
 		{
@@ -148,12 +170,20 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Member ID of the quiz Setup client
 	*@return int The Quiz ID of th newly created quiz
 	*/
-	public int makeNewQuiz(String quizName, int memberID)  throws RemoteException	
+	public synchronized int makeNewQuiz(String quizName, int memberID)  throws RemoteException	
 	{
 		int quizID = this.quizIDgenerator.incrementAndGet();
 		ArrayList<Question> questionSet = null;
 		Quiz newQuiz = new Quiz(quizID,quizName, memberID, questionSet);
+		
+		while(this.quizListInUse)
+		{
+			//loop until quiz list is free
+		}
+		this.quizListInUse = true;	
 		this.quizSet.add(newQuiz);
+		this.quizListInUse = false;
+		
 		return quizID;
 	}
 
@@ -163,7 +193,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@return Quiz stored in quiz list with corresponding quiz ID
 	*@param int Quiz ID of the quiz to be returned
 	*/
-	public Quiz getQuiz(int quizID) throws RemoteException
+	public synchronized Quiz getQuiz(int quizID) throws RemoteException
 	{
 		Quiz result = null;
 		try
@@ -196,7 +226,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param String Question text to be added
 	*@param ArrayList List of possible answers in the form of Strings
 	*/
-	public void addQuestion(int quizID, int memberID, String question, ArrayList<String> answerList)  throws RemoteException
+	public synchronized void addQuestion(int quizID, int memberID, String question, ArrayList<String> answerList)  throws RemoteException
 	{
 		Quiz editQuiz = this.getQuiz(quizID);
 		if(memberID==editQuiz.creatorID)
@@ -213,19 +243,25 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Member ID of the quiz set up client to verify that they are the creator of the quiz to be closed
 	*@return String If close is successful the alias of the member who achieved the highest score is returned along with their score. If close is unsuccessful a message detailing the reason is returned.
 	*/
-	public String closeQuiz(int quizID, int memberID) throws RemoteException
+	public synchronized String closeQuiz(int quizID, int memberID) throws RemoteException
 	{
 		String result = "";
 		Quiz editQuiz = this.getQuiz(quizID);
 		if(memberID==editQuiz.creatorID)
 		{
 			QuizScore topScore = editQuiz.getTopScore();
+			while(this.quizListInUse)
+			{
+				//loop while quiz list in use
+			}
+			this.quizListInUse = true;
 			if(!this.quizSet.remove(editQuiz))
 			{
 				result = "Quiz ID "+quizID+" not found";
 			}else{
 				result = this.getAlias(topScore.memberID)+" finished top of the quiz "+editQuiz.quizName+" scoring "+topScore.score+" out of "+this.getNumberOfQuestions(quizID);
 			}
+			this.quizListInUse = false;
 		}else{
 			result = "You are not the owner of this quiz";
 		}
@@ -239,7 +275,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Member ID of the member alias being queried
 	*@return String the alias chosen by the member
 	*/
-	public String getAlias(int memberID) throws RemoteException
+	public synchronized String getAlias(int memberID) throws RemoteException
 	{
 		for(Member m : this.memberList)
 		{
@@ -258,7 +294,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param String Quiz name being queried
 	*@return int Quiz ID of the quiz being queried
 	*/
-	public int getQuizID(String quizName) throws RemoteException
+	public synchronized int getQuizID(String quizName) throws RemoteException
 	{
 		try
 		{
@@ -284,7 +320,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@throws RemoteException
 	*@return int Quiz ID of a random quiz in the quiz set
 	*/
-	public int getRandomQuizID() throws RemoteException
+	public synchronized int getRandomQuizID() throws RemoteException
 	{
 		int quizID;
 
@@ -301,7 +337,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Quiz ID of the quiz being checked
 	*@return boolean TRUE if quiz exists in quiz set, FALSE if not
 	*/
-	public boolean doesQuizExist(int quizID) throws RemoteException
+	public synchronized boolean doesQuizExist(int quizID) throws RemoteException
 	{
 		for(Quiz q: this.quizSet)
 		{
@@ -320,7 +356,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param String search keyword
 	*@return ArrayList of quiz names containing the search keyword
 	*/
-	public ArrayList<String> searchQuiz(String keyword) throws RemoteException
+	public synchronized ArrayList<String> searchQuiz(String keyword) throws RemoteException
 	{
 		ArrayList result = new ArrayList<String>();
 
@@ -341,7 +377,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Quiz ID of the quiz being queried
 	*@return int the number of questions in the list of questions for that quiz
 	*/
-	public int getNumberOfQuestions(int quizID) throws RemoteException
+	public synchronized int getNumberOfQuestions(int quizID) throws RemoteException
 	{
 		try
 		{
@@ -364,7 +400,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Quiz ID of the quiz being queried
 	*@return String the name of the quiz being queried
 	*/
-	public String getQuizName(int quizID) throws RemoteException
+	public synchronized String getQuizName(int quizID) throws RemoteException
 	{
 		String result = null;
 		try
@@ -396,7 +432,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int the question number of the question being queried in the given quiz
 	*@return String Question text of the queried question is returned if the question is found. Returns null otherwise
 	*/
-	public String getQuestion(int quizID, int quNum) throws RemoteException
+	public synchronized String getQuestion(int quizID, int quNum) throws RemoteException
 	{
 		String result = null;
 		try
@@ -428,7 +464,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Question number of the question being queried
 	*@return ArrayList of possible answers for the given question. Returns null if the quiz does not exist or if the question is not found	
 	*/
-	public ArrayList<String> getAnswerSet(int quizID,int quNum) throws RemoteException
+	public synchronized ArrayList<String> getAnswerSet(int quizID,int quNum) throws RemoteException
 	{
 		ArrayList<String> result = null;
 		try
@@ -461,7 +497,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param String submitted answer to be checked
 	*@return int Returns 1 if the answer is correct and 0 if the answer submitted is incorrect
 	*/
-	public int checkAnswer(int quizID, int quNum, String answer) throws RemoteException
+	public synchronized int checkAnswer(int quizID, int quNum, String answer) throws RemoteException
 	{
 		int result = -1;
 		try
@@ -497,7 +533,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Member ID of the player for which score is being submitted
 	*@param int Score achieved by the player for this quiz
 	*/
-	public void submitScore(int quizID, int memberID, int score) throws RemoteException
+	public synchronized void submitScore(int quizID, int memberID, int score) throws RemoteException
 	{
 		try
 		{
