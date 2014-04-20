@@ -1,37 +1,50 @@
-Commands needed to run the Quiz App when in the file directory 
-where the source code is saved.
+Server Source Files:
 
-•	Compiling the source code files
+Flushable.java
+Flusher.java
+LoginManager.java
+Member.java
+Question.java
+Quiz.java
+QuizScore.java
+QuizServer.java
+QuizService.java
+QuizServiceLauncher.java
+ScoreComparator.java
+ScoreComparatorImpl.java
+QuizMaster.java
 
-Compile all java source files:
+Data persistence files
 
-javac -cp . *.java
+Members.txt - stores member details
+QuizList.txt - stores active quizzes
 
-•	Generating the QuizServer stub using the rmi compiler
-The command to do this is:
+Client Source files:
 
-	rmic QuizServer
+AddQuizPlayerClient.java
+AddQuizSetUpClient.java
+Quiz.java
+QuizScore.java
+QuizPlayer.java
+QuizSetUp.java
 
-•	Start the registry
-The command is:
+Running the quiz server:
 
-	start rmiregistry 2001
+-Compile all Server Source Files
 
-•	Running the server
-The command to run the server is:
+-To create the quiz service stub compile QuizServer using rmic
 
-java 	-cp .
-	-Djava.server.rmi.codebase= QuizMaster
-	-Djava.security.policy= ./RMIPolicy.txt  
-	QuizMaster         
+-Start the registry (the application defaults to port 1099)
 
-•	Running the client
+-To launch the quiz server run QuizMaster
 
-The command to run the Quiz Set Up Client is:
+-The security policy file is saved in the repo as RMIPolicy.txt
 
-java -cp . -Djava.security.policy=RMIPolicy.txt AddQuizSetUpClient
+Running the clients:
 
-The command to run the Quiz Player Client is:
+-Compile all Client Source files
 
-java -cp . -Djava.security.policy=RMIPolicy.txt AddQuizPlayerClient
+-To run the Quiz Set Up Client run AddQuizSetUpClient
+
+-To run the Quiz Set Up Client run AddQuizSetUpClient
 

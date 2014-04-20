@@ -75,6 +75,11 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 				}
 			}catch(IOException ex){
 				ex.printStackTrace();
+			}catch(NullPointerException ex){
+				this.quizIDgenerator = new AtomicInteger();
+				this.memberIDgenerator = new AtomicInteger();
+				this.quizSet = new HashSet<Quiz>();
+				this.memberList = new ArrayList<Member>();
 			}
 		}
 	}
