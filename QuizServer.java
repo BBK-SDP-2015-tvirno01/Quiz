@@ -219,7 +219,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	}
 
 	/**
-	*Method to ad a question to an existing quiz
+	*Method to add a question to an existing quiz
 	*@throws RemoteException
 	*@param int Quiz ID of the quiz the question is to be added to
 	*@param int Member ID of the quiz set up client

@@ -8,7 +8,7 @@ public class Quiz
 	public final String quizName;
 	public final int creatorID;
 	public final ArrayList<Question> quSet;
-	public final ArrayList<QuizScore> quLeaderBoard;
+	public ArrayList<QuizScore> quLeaderBoard;
 	
 
 	public Quiz(int ID, String name,int creator, ArrayList<Question> qus)
@@ -17,7 +17,8 @@ public class Quiz
 		this.quizName = name;
 		this.quSet = qus;
 		this.creatorID = creator;
-		this.quLeaderBoard = new ArrayList();	
+		this.quLeaderBoard = new ArrayList();
+	
 	}
 
 	public void addQuestion(Question qu)
@@ -46,6 +47,6 @@ public class Quiz
 	{
 		ScoreComparator<QuizScore> cScore = new ScoreComparatorImpl<QuizScore>();
 		Collections.sort(this.quLeaderBoard,cScore);
-		return this.quLeaderBoard.get(1);
+		return this.quLeaderBoard.get(0);
 	}
 }
