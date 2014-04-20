@@ -1,11 +1,12 @@
 
 
+import java.rmi.*;
+import java.net.*;
 import java.util.*;
 import java.io.*;
 import java.text.*;
 import java.util.concurrent.atomic.*;
 import java.rmi.server.*;
-import java.rmi.*;
 
 public class AddQuizSetUpClient
 {
@@ -30,6 +31,8 @@ public class AddQuizSetUpClient
 		} catch (MalformedURLException ex) {
 			ex.printStackTrace();
 		} catch (RemoteException ex) {
+			ex.printStackTrace();
+		}catch(NotBoundException ex){
 			ex.printStackTrace();
 		}
 		
