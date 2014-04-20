@@ -1,4 +1,5 @@
-Commands needed to run the Quiz App
+Commands needed to run the Quiz App when in the file directory 
+where the source code is saved.
 
 •	Compiling the source code files
 
@@ -6,23 +7,31 @@ Compile all java source files:
 
 javac -cp . *.java
 
-•	Generating the stub and skeleton using the rmi compiler
+•	Generating the QuizServer stub using the rmi compiler
 The command to do this is:
 
 	rmic QuizServer
 
+•	Start the registry
+The command is:
+
+	start rmiregistry 2001
+
 •	Running the server
 The command to run the server is:
 
-java -Djava.server.rmi.codebase=.RMIPolicy.txt  QuizMaster         
+java 	-cp .
+	-Djava.server.rmi.codebase= QuizMaster
+	-Djava.security.policy= ./RMIPolicy.txt  
+	QuizMaster         
 
 •	Running the client
 
 The command to run the Quiz Set Up Client is:
 
-java -Djava.security.policy=RMIPolicy.txt AddQuizSetUpClient
+java -cp . -Djava.security.policy=RMIPolicy.txt AddQuizSetUpClient
 
 The command to run the Quiz Player Client is:
 
-java -Djava.security.policy=RMIPolicy.txt AddQuizPlayerClient
+java -cp . -Djava.security.policy=RMIPolicy.txt AddQuizPlayerClient
 
