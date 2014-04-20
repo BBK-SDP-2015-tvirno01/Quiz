@@ -12,6 +12,11 @@ public class QuizSetUp
 	private QuizService qServer;
 	public final int playerID;
 
+
+	/**
+	*Constructor method initialises member fields. The player ID is initialised by the login in manager which will either register a new member or verify an existing members credentials
+	*@param QuizServer indicates the quiz service being accessed by the quiz player client
+	*/
 	public QuizSetUp(QuizService qServer)
 	{
 		this.qServer = qServer;
@@ -19,6 +24,9 @@ public class QuizSetUp
 		this.playerID = LM.login();
 	}
 
+	/**
+	*Method launches the application for the quiz set up client. Presents a menu of options available
+	*/
 	public void launch()
 	{
 		System.out.println("Welcome to QuizMaster!");
@@ -48,7 +56,7 @@ public class QuizSetUp
 						{
 						finished = true;
 						}else{
-							throw new IllegalArgumentException();
+							System.out.println("That is not a valid selection");;
 						}
 					}
 				}
@@ -59,6 +67,12 @@ public class QuizSetUp
 		System.exit(0);
 	}
 
+
+	/**
+	*Method presents menu to the quiz set up client allowing them to create a new quiz to be saved to the server
+	*@throws RemoteException
+	*@return int Quiz ID of the newly created quiz
+	*/
 	private int createQuiz()
 	{
 		int quizID = -1;
@@ -96,6 +110,11 @@ public class QuizSetUp
 		
 	}
 
+	/**
+	*Method to present a menu to the quiz set up client to allow them to add a question to a quiz
+	*@param int Question number of the question to be added to the quiz
+	*@return String question text entered by the client
+	*/
 	private String addQuestion(int quNum)
 	{
 		System.out.println("Would you like to add a quesion? (y/n)");
@@ -114,6 +133,12 @@ public class QuizSetUp
 		return null;
 	}
 
+	/**
+	*Method to present a menu to the client to allow them  to add possible answers for a given question
+	*@param String question for which answers are to be provided
+	*@param int number of possible answers for the question to be entered
+	*@return ArrayList of the possible answers entered by the client
+	*/
 	private ArrayList<String> addAnswers(String question, int answerListSize)
 	{
 		System.out.println("Please enter the correct answer for the question: "+System.getProperty("line.separator")+question);

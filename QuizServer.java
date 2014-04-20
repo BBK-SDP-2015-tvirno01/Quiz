@@ -295,7 +295,7 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 	*@param int Quiz ID of the quiz being checked
 	*@return boolean TRUE if quiz exists in quiz set, FALSE if not
 	*/
-	private boolean doesQuizExist(int quizID)
+	public boolean doesQuizExist(int quizID) throws RemoteException
 	{
 		for(Quiz q: this.quizSet)
 		{
