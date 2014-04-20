@@ -10,11 +10,12 @@ public class QuizServiceLauncher
 	//launches new Quiz server and binds on to the registry
 	public void launch()
 	{
-		// 1. If there is no security manager, start one
+		//1. If there is no security manager, start one
 		if (System.getSecurityManager() == null)
 		{
 			System.setSecurityManager(new RMISecurityManager());
 		}
+		
 
 		try
 		{
