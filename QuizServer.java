@@ -538,6 +538,12 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 		try
 		{
 			QuizScore newScore = new QuizScore(memberID,score);
+
+			while(this.quizListInUse)
+			{
+				//loop until quiz list is not in use
+			}
+			this.quizListInUse = true;
 			if(doesQuizExist(quizID))
 			{
 				for(Quiz q:this.quizSet)
@@ -550,8 +556,10 @@ public class QuizServer extends UnicastRemoteObject implements QuizService, Flus
 			}else{
 				throw new IllegalArgumentException();
 			}
+			this.quizListInUse = false;
 		}catch(IllegalArgumentException ex){
-			System.out.println("Quiz not found. Scores aill not be submitted for quizzes that are already closed");
+			System.out.println("Quiz not found. Scores will not be submitted for quizzes that are already closed");
+			this.quizListInUse = false;
 		}
 	}
 }

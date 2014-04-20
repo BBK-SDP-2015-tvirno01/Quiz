@@ -215,6 +215,8 @@ public class QuizPlayer
 			ex.printStackTrace();
 		}catch(IllegalArgumentException ex){
 			System.out.println("I'm afraid the selected quiz does not exist or has been closed. Returning to main menu");
+		}catch(NullPointerException ex){
+			System.out.println("I'm sorry, this quiz is either under construction or has been closed. Returning to main menu");
 		}
 
 	}
